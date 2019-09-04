@@ -11,7 +11,7 @@ module DigitalComm
 # Only submodules are considered so don't need to overload too much packages here 
 # --> Go to next section with submodules loading 
 using FFTW 
-
+using Statistics
 
 # ---------------------------------------------------- 
 # --- Submodules inclusion  
@@ -113,7 +113,7 @@ function getSIR(d,u,type="dB")
 		error("getSIR.jl: Observation and reference signals should have the same length")
 	end
 	# --- Calculating SIR
-	sirLinear	= mean( (abs2.( ur - dr))) / custMean( (abs2.(dr)));
+	sirLinear	= mean( (abs2.( ur - dr))) / mean( (abs2.(dr)));
 	# --- Setting output
 	if castype == 1
 		# --- Return linear SIR
@@ -125,19 +125,36 @@ function getSIR(d,u,type="dB")
 end
 export getSIR;
 
+""" 
+---
+Calculate the average power of the input signal 
+σ	= 1 / N Σ | x[n] | ^2 
+# --- Syntax 
+σ	= avgPower(x);
+# --- Input parameters 
+- x	  : Input signal [Array{Any}]
+# --- Output parameters 
+- σ	  : Estimated power [Float64]
+# --- 
+# v 1.0 - Robin Gerzaguet.
+"""
+function avgPower(x)
+	return 1/length(x) * sum( abs2.(x) ) ;
+end
+export avgPower
 
-# --- Complex Convolution definition 
-# In DSP conv is only defined as Re * Re -> Extend to C
-import DSP.conv
-function conv(x::Array{Complex{T}},h::Array{Complex{T}}) where T
-	 y = conv(real(x),real(h)).-conv(imag(x),imag(h)).+ 1im*(conv(imag(x),real(h)).+conv(real(x),imag(h)));
-end
-function conv(x::Array{Complex{T}},h) where T
-	y = conv(real(x),h).+1im*conv(imag(x),h);
-end
-function conv(x,h::Array{Complex{T}}) where T
-	y = conv(x,real(h)).+1im*conv(x,imag(h));
-end
+## --- Complex Convolution definition 
+## In DSP conv is only defined as Re * Re -> Extend to C
+#import DSP.conv
+##function conv(x::Array{Complex{T}},h::Array{Complex{T}}) where T
+	 ##y = conv(real(x),real(h)).-conv(imag(x),imag(h)).+ 1im*(conv(imag(x),real(h)).+conv(real(x),imag(h)));
+##end
+#function conv(x::Array{Complex{T}},h) where T
+	#y = conv(real(x),h).+1im*conv(imag(x),h);
+#end
+#function conv(x,h::Array{Complex{T}}) where T
+	#y = conv(x,real(h)).+1im*conv(x,imag(h));
+#end
 
 
 # ---------------------------------------------------- 
